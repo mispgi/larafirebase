@@ -4,6 +4,7 @@ namespace Kutia\Larafirebase\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Notifications\ChannelManager;
+use Illuminate\Support\Str;
 use Kutia\Larafirebase\Services\Larafirebase;
 use Kutia\Larafirebase\Channels\FirebaseChannel;
 
@@ -18,12 +19,16 @@ class LarafirebaseServiceProvider extends ServiceProvider
     {
         $app = $this->app;
 
+        if ($this->isLumen()) {
+            require_once __DIR__ . '/../lumen.php';
+        }
+
         $this->app->make(ChannelManager::class)->extend('firebase', function () use ($app) {
             return $app->make(FirebaseChannel::class);
         });
 
         $this->mergeConfigFrom(
-            __DIR__. '../../Config/larafirebase.php',
+            __DIR__. '/../Config/larafirebase.php',
             'larafirebase'
         );
     }
@@ -40,5 +45,15 @@ class LarafirebaseServiceProvider extends ServiceProvider
         ]);
 
         $this->app->bind('larafirebase', Larafirebase::class);
+    }
+
+    /**
+     * Check if app uses Lumen.
+     *
+     * @return bool
+     */
+    protected function isLumen()
+    {
+        return Str::contains($this->app->version(), 'Lumen');
     }
 }
